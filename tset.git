@@ -1,0 +1,101 @@
+---
+title: "Magic of R"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(ggplot2)
+library(plotly)
+library(dplyr)
+library(scales)
+library(kableExtra)
+```
+
+```{r}
+#hochladen mit  rsconnect::deployApp('G:/USERS/Schilling/test.Rmd')
+```
+
+
+```{r}
+data <- data.frame(x = rnorm(1000))
+data$cut <- cut(data$x, quantile(data$x, seq(0,1,0.1)), labels= c(1:10))
+```
+
+# Info {.sidebar}
+Das hier ist ein Test, um Dashboards mit R auszuprobieren. Diese Seite wird über die Plattform https://shinyapps.io kostenlos gehostet. Die Graphiken enthalten Daten, die im Skript zufällig generiert werden.
+Nutzung zuvor erhobener Daten und komplexerer Systeme ist mithilfe von https://github.com/ möglich, damit mache ich mich grade vertraut. Hier sind einige Beispiele, wie Dashboards mit R aussehen können: https://pkgs.rstudio.com/flexdashboard/articles/examples.html
+
+
+By Jasmin
+```{r echo = FALSE, results = 'asis'}
+image = "https://thumbs.dreamstime.com/m/young-kitten-cat-meowing-green-grass-funny-97243585.jpg"
+cat(paste0('<center><img src="', image,  '"></center>')) 
+```
+
+
+
+
+# Dash 
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Beliebige Überschrift
+
+```{r}
+(ggplot(data, aes(x, text = paste("x :", x, "<br>count:", after_stat(count))))+ geom_histogram(aes(y = after_stat(count)/sum(after_stat(count)) ,fill = after_stat(count))) + 
+ theme(legend.position = "none", axis.title = element_blank())+
+   labs(title = "Eine Graphik")+
+   scale_y_continuous(labels = scales::percent)) %>% ggplotly(tooltip = "text")
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Hier könnte Ihre Werbung stehen
+
+```{r}
+as.data.frame(table(data$cut)) %>% mutate(share = Freq/sum(Freq)) %>% 
+plot_ly(label = ~Var1, values = ~share, textinfo = 'percent', hoverinfo = 'text', text = ~paste(Var1, "<br>", "Anzahl: ", Freq, "<br>")) %>% add_pie(hole = 0.6) %>% layout(title = "Eine andere Graphik")
+```
+
+# other Page
+Column {data-width=300}
+-----------------------------------------------------------------------
+### Beispielrechnung
+```{r}
+data$y <- 2+ 1.7 *data$x +rnorm(1000, sd= 0.5)
+```
+
+Hier ist ein einfaches Regressionsmodell dargestellt. 
+Das wahre Model ist:
+$$
+y_i = \beta_0 + \beta_1*x_i 
+$$
+Mit den Parametern $\beta_0 = 2$ und $\beta_1 = 1.7$ . Mithilfe der linaren Regression kann das Model geschätzt werden:
+$$
+\hat{y}_i = \hat{\beta_0} + \hat {\beta_1} *x_i + \epsilon 
+$$
+mit den geschätzten Parametern:
+
+$\hat{\beta_1} = \frac{\sum_{i=1}^N (x_i-\bar{x})(y_i-\bar {y})}{\sum_{i = 1}^N (x_i-\bar{x})^2}$ und $\hat{\beta_0} = \bar{y}- \hat{\beta_1}*\bar{x}$
+
+
+Die Schätzung der Parameter mit R ergibt: 
+```{r}
+print(summary(lm(y~x, data)))
+```
+(Intercept) = $\hat{\beta_0}$ und x = $\hat{\beta_1}$
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+### Als Graph sieht das so aus
+```{r}
+(ggplot(data, aes(x, y)) +
+  geom_point() +
+  geom_smooth(method = "lm")) %>% ggplotly()
+```
+
